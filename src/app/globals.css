@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-paper: #f4efe6;
+  --color-ink: #243028;
+  --color-muted: #5d675f;
+  --color-forest: #1c4d3a;
+  --color-forest-dark: #143628;
+  --color-leaf: #dcefe3;
+  --color-line: #ddd4c4;
+  --color-amber-soft: #f3ead6;
+  --color-amber-deep: #7a5424;
+  --font-sans: var(--font-source-sans);
+  --font-serif: var(--font-source-serif);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background:
+    radial-gradient(1200px 400px at 10% -10%, #e7f0e6 0%, transparent 50%),
+    var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-source-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+::selection {
+  background: var(--color-leaf);
+}
