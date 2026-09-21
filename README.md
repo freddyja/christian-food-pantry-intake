@@ -40,18 +40,38 @@ npm run build
 npm start
 ```
 
-## Deploy (Vercel)
+## Deploy (one command)
 
-The app is a standard Next.js App Router project.
+This is a Next.js App Router app (not a static site), so it needs a Node host such as **Vercel**.
 
-- **Local / first preview:** uses a SQLite file. On Vercel this lives in `/tmp` and is re-seeded on a cold start, which is enough for a demo.
-- **Production persistence:** create a [Turso](https://turso.tech) (libSQL) database and set:
+From the project root, after [logging in to Vercel](https://vercel.com/login) once:
 
-  - `TURSO_DATABASE_URL` — e.g. `libsql://your-db.turso.io`
-  - `TURSO_AUTH_TOKEN`
-  - `ADMIN_PIN` — optional; defaults to `1234` for demo
+```bash
+npx vercel --yes
+```
 
-Then deploy with the Vercel GitHub integration or `npx vercel`.
+That prints a public `*.vercel.app` preview URL. Optional: connect the GitHub repo in the Vercel dashboard so every push gets a preview automatically.
+
+- **Demo data:** SQLite is seeded on first run. On Vercel it lives in `/tmp` and re-seeds on a cold start (enough to click through the app).
+- **Production persistence:** set `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` on the Vercel project, plus optional `ADMIN_PIN` (demo default is `1234`).
+
+## Screenshots
+
+![Search](docs/screenshots/search.png)
+
+![Eligible household card](docs/screenshots/eligible-card.png)
+
+![Already received food this month](docs/screenshots/already-served-card.png)
+
+![Record visit](docs/screenshots/record-visit.png)
+
+![Emergency visit](docs/screenshots/emergency-visit.png)
+
+![New household](docs/screenshots/new-household.png)
+
+![History](docs/screenshots/history.png)
+
+![Admin](docs/screenshots/admin.png)
 
 ## Screens
 
@@ -76,16 +96,3 @@ A household is eligible when there is no non-undone visit in the current calenda
 ## Non-goals (v1)
 
 No client self-check-in, inventory, ID scanning, SMS, or multi-site support.
-
-## Screenshots
-
-Demo captures of the main screens live in [`artifacts/`](./artifacts):
-
-- `search.png`
-- `eligible-card.png`
-- `already-served-card.png`
-- `record-visit.png`
-- `emergency-visit.png`
-- `new-household.png`
-- `history.png`
-- `admin.png`
