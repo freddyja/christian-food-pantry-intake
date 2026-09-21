@@ -21,7 +21,7 @@ export function AdminPanel({
 }) {
   return (
     <div>
-      <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
+      <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-lg font-semibold text-forest">Admin</p>
           <BrandMark compact />

@@ -30,13 +30,13 @@ export function BrandMark({ compact }: { compact?: boolean }) {
           <path d="M12 5.5c.8 1.6.8 3.2 0 4.8" strokeLinecap="round" />
         </svg>
       </span>
-      <div>
-        <p className="font-serif text-2xl font-semibold leading-none tracking-tight text-ink">
+      <div className="min-w-0">
+        <p className={cn("font-serif font-semibold leading-snug tracking-tight text-ink", compact ? "text-xl" : "text-2xl")}>
+          Shady Hills Mission Chapel
+        </p>
+        <p className={cn("text-muted", compact ? "mt-0.5 text-base" : "mt-1 text-lg")}>
           Pantry Check-in
         </p>
-        {!compact ? (
-          <p className="mt-1 text-base text-muted">Christian Food Pantry</p>
-        ) : null}
       </div>
     </div>
   );

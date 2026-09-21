@@ -1,6 +1,6 @@
-# Pantry Check-in
+# Shady Hills Mission Chapel — Pantry Check-in
 
-Tablet-friendly intake app for Christian food pantry volunteers. Find a household, see whether they can receive food **this calendar month**, record a visit, register a new household, or use a short emergency exception.
+Tablet-friendly intake app for **Shady Hills Mission Chapel** pantry volunteers. Find a household, see whether they can receive food **this calendar month**, record a visit, register a new household, or use a short emergency exception.
 
 Language stays warm and dignified. The app says **“Already received food this month,”** never denied, blocked, or ineligible.
 

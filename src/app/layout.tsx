@@ -16,12 +16,12 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: "Pantry Check-in",
+  title: "Shady Hills Mission Chapel — Pantry Check-in",
   description:
-    "Tablet-friendly intake for pantry volunteers: find a household, see monthly eligibility, and record a visit.",
+    "Tablet-friendly intake for Shady Hills Mission Chapel pantry volunteers: find a household, see monthly eligibility, and record a visit.",
   appleWebApp: {
     capable: true,
-    title: "Pantry Check-in",
+    title: "Shady Hills Pantry",
     statusBarStyle: "default",
   },
 };
