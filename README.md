@@ -77,6 +77,15 @@ A household is eligible when there is no non-undone visit in the current calenda
 
 No client self-check-in, inventory, ID scanning, SMS, or multi-site support.
 
-## Stack
+## Screenshots
 
-Next.js (App Router) + TypeScript + Tailwind CSS + Drizzle ORM + libSQL/SQLite.
+Demo captures of the main screens live in [`artifacts/`](./artifacts):
+
+- `search.png`
+- `eligible-card.png`
+- `already-served-card.png`
+- `record-visit.png`
+- `emergency-visit.png`
+- `new-household.png`
+- `history.png`
+- `admin.png`

@@ -35,7 +35,7 @@ export const btn = {
 
 export const fieldClass = cn(
   "w-full min-h-14 rounded-2xl border-2 border-line bg-white px-4 py-3 text-lg text-ink",
-  "placeholder:text-muted/70",
+  "placeholder:text-muted/45",
   "focus:border-forest focus:outline-none focus:ring-4 focus:ring-leaf",
 );
 

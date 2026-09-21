@@ -34,7 +34,7 @@ export function HouseholdForm({ household }: { household?: Household }) {
         {isEdit ? "Edit household" : "New household"}
       </h1>
 
-      <form action={formAction} className="mt-6 space-y-5">
+      <form action={formAction} className="mt-6 space-y-5" autoComplete="off">
         {isEdit ? <input type="hidden" name="id" value={household!.id} /> : null}
 
         <div>
@@ -46,7 +46,7 @@ export function HouseholdForm({ household }: { household?: Household }) {
             minLength={2}
             defaultValue={household?.primaryName ?? ""}
             className={fieldClass}
-            placeholder="Garcia, Maria"
+            placeholder="Last, First"
           />
         </div>
 
@@ -59,7 +59,7 @@ export function HouseholdForm({ household }: { household?: Household }) {
               type="tel"
               defaultValue={household?.phone ?? ""}
               className={fieldClass}
-              placeholder="(352) 555-0142"
+              placeholder=""
             />
           </div>
           <div>
