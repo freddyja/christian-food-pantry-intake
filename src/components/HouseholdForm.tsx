@@ -1,42 +1,85 @@
-"use client";
-
-import type { ReactNode } from "react";
-import Link from "next/link";
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
-import { createHouseholdAction, updateHouseholdAction } from "@/lib/actions";
-import { BackLink } from "@/components/AppShell";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { BackLink, LoadingLine } from "@/components/AppShell";
 import { btn, fieldClass, Label } from "@/components/ui";
-import type { Household } from "@/lib/schema";
-
-function Submit({ children }: { children: ReactNode }) {
-  const { pending } = useFormStatus();
-  return (
-    <button type="submit" disabled={pending} className={btn.primary}>
-      {pending ? "Saving…" : children}
-    </button>
-  );
-}
+import { createHousehold, getHousehold, updateHousehold } from "@/lib/api";
+import type { Household } from "@/lib/types";
 
 const sizes = Array.from({ length: 12 }, (_, i) => i + 1);
 
-export function HouseholdForm({ household }: { household?: Household }) {
-  const isEdit = Boolean(household);
-  const action = isEdit ? updateHouseholdAction : createHouseholdAction;
-  const [state, formAction] = useActionState(action, null);
+export function HouseholdForm() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isEdit = Boolean(id);
+  const [household, setHousehold] = useState<Household | null | undefined>(isEdit ? undefined : null);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    getHousehold(id).then(setHousehold);
+  }, [id]);
+
+  if (isEdit && household === undefined) return <LoadingLine />;
+  if (isEdit && !household) {
+    return (
+      <div>
+        <BackLink href="/">Search</BackLink>
+        <p className="mt-6 text-lg text-muted">That household was not found on this device.</p>
+      </div>
+    );
+  }
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const primaryName = String(form.get("primaryName") ?? "");
+    const phone = String(form.get("phone") ?? "");
+    const address = String(form.get("address") ?? "");
+    const householdSize = Number(form.get("householdSize"));
+    const notes = String(form.get("notes") ?? "");
+    const active = form.get("active") === "on";
+
+    setSaving(true);
+    setError(null);
+    try {
+      if (isEdit && id) {
+        await updateHousehold({
+          id,
+          primaryName,
+          phone,
+          address,
+          householdSize,
+          notes,
+          active,
+        });
+        navigate(`/households/${id}`);
+      } else {
+        const createdId = await createHousehold({
+          primaryName,
+          phone,
+          address,
+          householdSize,
+          notes,
+        });
+        navigate(`/households/${createdId}`);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Please check the form.");
+      setSaving(false);
+    }
+  }
 
   return (
     <div>
-      <BackLink href={isEdit ? `/households/${household!.id}` : "/"}>
+      <BackLink href={isEdit && id ? `/households/${id}` : "/"}>
         {isEdit ? "Card" : "Search"}
       </BackLink>
       <h1 className="mt-4 font-serif text-3xl font-semibold">
         {isEdit ? "Edit household" : "New household"}
       </h1>
 
-      <form action={formAction} className="mt-6 space-y-5" autoComplete="off">
-        {isEdit ? <input type="hidden" name="id" value={household!.id} /> : null}
-
+      <form onSubmit={onSubmit} className="mt-6 space-y-5" autoComplete="off">
         <div>
           <Label htmlFor="primaryName">Primary name *</Label>
           <input
@@ -59,7 +102,6 @@ export function HouseholdForm({ household }: { household?: Household }) {
               type="tel"
               defaultValue={household?.phone ?? ""}
               className={fieldClass}
-              placeholder=""
             />
           </div>
           <div>
@@ -113,13 +155,15 @@ export function HouseholdForm({ household }: { household?: Household }) {
           </label>
         ) : null}
 
-        {state?.error ? <p className="text-lg text-amber-deep">{state.error}</p> : null}
+        {error ? <p className="text-lg text-amber-deep">{error}</p> : null}
 
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-          <Link href={isEdit ? `/households/${household!.id}` : "/"} className={btn.secondary}>
+          <Link to={isEdit && id ? `/households/${id}` : "/"} className={btn.secondary}>
             Cancel
           </Link>
-          <Submit>{isEdit ? "Save changes" : "Save household"}</Submit>
+          <button type="submit" disabled={saving} className={btn.primary}>
+            {saving ? "Saving…" : isEdit ? "Save changes" : "Save household"}
+          </button>
         </div>
       </form>
     </div>

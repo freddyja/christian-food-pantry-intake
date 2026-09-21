@@ -1,18 +1,33 @@
-import Link from "next/link";
-import { BackLink } from "@/components/AppShell";
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { BackLink, LoadingLine } from "@/components/AppShell";
 import { btn, cn } from "@/components/ui";
+import { getHouseholdStatus } from "@/lib/api";
 import { formatPhone, householdSizeLabel, visitKindLabel } from "@/lib/format";
-import type { HouseholdStatus } from "@/lib/queries";
-import { formatShortDate } from "@/lib/timezone";
+import type { HouseholdStatus } from "@/lib/types";
+import { formatMonthYear, formatShortDate } from "@/lib/timezone";
 
-export function HouseholdCardView({
-  status,
-  monthLabel,
-}: {
-  status: HouseholdStatus;
-  monthLabel: string;
-}) {
+export function HouseholdCardView() {
+  const { id } = useParams();
+  const [status, setStatus] = useState<HouseholdStatus | null | undefined>(undefined);
+
+  useEffect(() => {
+    if (!id) return;
+    getHouseholdStatus(id).then(setStatus);
+  }, [id]);
+
+  if (status === undefined) return <LoadingLine />;
+  if (!status) {
+    return (
+      <div>
+        <BackLink href="/">Search</BackLink>
+        <p className="mt-6 text-lg text-muted">That household was not found on this device.</p>
+      </div>
+    );
+  }
+
   const { household, eligible, thisMonthVisit, lastVisit } = status;
+  const monthLabel = formatMonthYear();
 
   return (
     <div>
@@ -60,15 +75,15 @@ export function HouseholdCardView({
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           {eligible ? (
-            <Link href={`/households/${household.id}/visit`} className={btn.primary}>
+            <Link to={`/households/${household.id}/visit`} className={btn.primary}>
               Record visit
             </Link>
           ) : (
-            <Link href={`/households/${household.id}/emergency`} className={btn.amber}>
+            <Link to={`/households/${household.id}/emergency`} className={btn.amber}>
               Record emergency visit
             </Link>
           )}
-          <Link href={`/households/${household.id}/history`} className={btn.secondary}>
+          <Link to={`/households/${household.id}/history`} className={btn.secondary}>
             History
           </Link>
         </div>

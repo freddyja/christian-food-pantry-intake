@@ -1,27 +1,16 @@
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { eligibleThisMonth } from "@/lib/eligibility";
-import { listVisitsForHousehold, searchHouseholds } from "@/lib/queries";
-import { resetDbCache } from "@/lib/db";
+import { db, ensureSeeded } from "@/lib/db";
+import { listVisitsForHousehold, searchHouseholds } from "@/lib/api";
 
-function useTempDb() {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "pantry-"));
-  const file = path.join(dir, "test.db");
-  process.env.DATABASE_URL = `file:${file}`;
-  resetDbCache();
-  return dir;
-}
-
-describe("database seed and search", () => {
-  afterEach(() => {
-    resetDbCache();
-    delete process.env.DATABASE_URL;
+describe("indexeddb seed and search", () => {
+  beforeEach(async () => {
+    await db.delete();
+    await db.open();
+    await ensureSeeded();
   });
 
   it("seeds households and finds Garcia by name and phone", async () => {
-    useTempDb();
     const byName = await searchHouseholds("Garcia");
     expect(byName[0]?.household.primaryName).toContain("Garcia");
     expect(byName[0]?.eligible).toBe(false);

@@ -1,96 +1,135 @@
-"use client";
-
-import type { ReactNode } from "react";
-import Link from "next/link";
-import { useActionState, useState } from "react";
-import { useFormStatus } from "react-dom";
-import { recordEmergencyVisitAction, recordVisitAction } from "@/lib/actions";
-import { BackLink } from "@/components/AppShell";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { BackLink, LoadingLine } from "@/components/AppShell";
 import { btn, fieldClass, Label } from "@/components/ui";
+import { getHousehold, recordEmergencyVisit, recordVisit } from "@/lib/api";
 import { householdSizeLabel } from "@/lib/format";
+import { formatLongDate, formatMonthYear } from "@/lib/timezone";
+import type { Household } from "@/lib/types";
 
-function Submit({
-  children,
-  className,
-  disabled,
-}: {
-  children: ReactNode;
-  className: string;
-  disabled?: boolean;
-}) {
-  const { pending } = useFormStatus();
-  return (
-    <button type="submit" disabled={disabled || pending} className={className}>
-      {pending ? "Saving…" : children}
-    </button>
-  );
-}
+export function RecordVisitForm() {
+  const { id: householdId } = useParams();
+  const navigate = useNavigate();
+  const [household, setHousehold] = useState<Household | null | undefined>(undefined);
+  const [note, setNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
-export function RecordVisitForm({
-  householdId,
-  name,
-  householdSize,
-  todayLabel,
-}: {
-  householdId: string;
-  name: string;
-  householdSize: number;
-  todayLabel: string;
-}) {
-  const [state, action] = useActionState(recordVisitAction, null);
+  useEffect(() => {
+    if (!householdId) return;
+    getHousehold(householdId).then(setHousehold);
+  }, [householdId]);
+
+  if (household === undefined) return <LoadingLine />;
+  if (!household || !householdId) {
+    return (
+      <div>
+        <BackLink href="/">Search</BackLink>
+        <p className="mt-6 text-lg text-muted">That household was not found on this device.</p>
+      </div>
+    );
+  }
+
+  const id = householdId;
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      await recordVisit(id, note);
+      navigate("/?recorded=1");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not record the visit.");
+      setSaving(false);
+    }
+  }
 
   return (
     <div>
       <BackLink href={`/households/${householdId}`}>Card</BackLink>
       <h1 className="mt-4 font-serif text-3xl font-semibold">Record visit</h1>
       <p className="mt-2 text-lg text-muted">
-        {name} · {householdSizeLabel(householdSize)}
+        {household.primaryName} · {householdSizeLabel(household.householdSize)}
       </p>
-      <p className="text-lg text-muted">Today · {todayLabel}</p>
+      <p className="text-lg text-muted">Today · {formatLongDate(new Date())}</p>
 
-      <form action={action} className="mt-6 space-y-5">
-        <input type="hidden" name="householdId" value={householdId} />
+      <form onSubmit={onSubmit} className="mt-6 space-y-5">
         <div>
           <Label htmlFor="note">Optional note</Label>
-          <textarea id="note" name="note" rows={3} className={fieldClass} />
+          <textarea
+            id="note"
+            name="note"
+            rows={3}
+            value={note}
+            onChange={(event) => setNote(event.target.value)}
+            className={fieldClass}
+          />
         </div>
-        {state?.error ? <p className="text-lg text-amber-deep">{state.error}</p> : null}
+        {error ? <p className="text-lg text-amber-deep">{error}</p> : null}
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-          <Link href={`/households/${householdId}`} className={btn.secondary}>
+          <Link to={`/households/${householdId}`} className={btn.secondary}>
             Cancel
           </Link>
-          <Submit className={btn.primary}>Confirm visit</Submit>
+          <button type="submit" disabled={saving} className={btn.primary}>
+            {saving ? "Saving…" : "Confirm visit"}
+          </button>
         </div>
       </form>
     </div>
   );
 }
 
-export function EmergencyVisitForm({
-  householdId,
-  name,
-  monthLabel,
-}: {
-  householdId: string;
-  name: string;
-  monthLabel: string;
-}) {
-  const [state, action] = useActionState(recordEmergencyVisitAction, null);
+export function EmergencyVisitForm() {
+  const { id: householdId } = useParams();
+  const navigate = useNavigate();
+  const [household, setHousehold] = useState<Household | null | undefined>(undefined);
   const [reason, setReason] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!householdId) return;
+    getHousehold(householdId).then(setHousehold);
+  }, [householdId]);
+
+  if (household === undefined) return <LoadingLine />;
+  if (!household || !householdId) {
+    return (
+      <div>
+        <BackLink href="/">Search</BackLink>
+        <p className="mt-6 text-lg text-muted">That household was not found on this device.</p>
+      </div>
+    );
+  }
+
+  const id = householdId;
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      await recordEmergencyVisit(id, reason);
+      navigate("/?recorded=emergency");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not record the visit.");
+      setSaving(false);
+    }
+  }
 
   return (
     <div>
       <BackLink href={`/households/${householdId}`}>Card</BackLink>
       <h1 className="mt-4 font-serif text-3xl font-semibold">Record emergency visit</h1>
       <p className="mt-3 text-lg">
-        {name} already received food in {monthLabel}.
+        {household.primaryName} already received food in {formatMonthYear()}.
       </p>
       <p className="mt-1 text-lg text-muted">
         Use this only when leadership approves an exception.
       </p>
 
-      <form action={action} className="mt-6 space-y-5">
-        <input type="hidden" name="householdId" value={householdId} />
+      <form onSubmit={onSubmit} className="mt-6 space-y-5">
         <div>
           <Label htmlFor="reason">Reason (required)</Label>
           <textarea
@@ -105,14 +144,18 @@ export function EmergencyVisitForm({
             className={fieldClass}
           />
         </div>
-        {state?.error ? <p className="text-lg text-amber-deep">{state.error}</p> : null}
+        {error ? <p className="text-lg text-amber-deep">{error}</p> : null}
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
-          <Link href={`/households/${householdId}`} className={btn.secondary}>
+          <Link to={`/households/${householdId}`} className={btn.secondary}>
             Cancel
           </Link>
-          <Submit className={btn.amber} disabled={reason.trim().length < 3}>
-            Confirm emergency visit
-          </Submit>
+          <button
+            type="submit"
+            disabled={saving || reason.trim().length < 3}
+            className={btn.amber}
+          >
+            {saving ? "Saving…" : "Confirm emergency visit"}
+          </button>
         </div>
       </form>
     </div>

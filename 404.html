@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Shady Hills Mission Chapel — Pantry Check-in</title>
+    <script>
+      const base = "/christian-food-pantry-intake";
+      const path = location.pathname.startsWith(base)
+        ? location.pathname.slice(base.length) || "/"
+        : location.pathname || "/";
+      location.replace(base + "/#" + path + location.search + location.hash.replace(/^#/, ""));
+    </script>
+  </head>
+  <body>
+    <p>Opening Pantry Check-in…</p>
+  </body>
+</html>

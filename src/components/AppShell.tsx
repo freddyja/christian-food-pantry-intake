@@ -1,11 +1,12 @@
-import Link from "next/link";
+import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { cn } from "@/components/ui";
 
 export function AppShell({
   children,
   wide,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   wide?: boolean;
 }) {
   return (
@@ -42,15 +43,15 @@ export function BrandMark({ compact }: { compact?: boolean }) {
   );
 }
 
-export function BackLink({ href, children }: { href: string; children: React.ReactNode }) {
+export function BackLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <Link href={href} className="inline-flex min-h-11 items-center gap-1 text-lg font-semibold text-forest">
+    <Link to={href} className="inline-flex min-h-11 items-center gap-1 text-lg font-semibold text-forest">
       <span aria-hidden>←</span> {children}
     </Link>
   );
 }
 
-export function SuccessBanner({ children }: { children: React.ReactNode }) {
+export function SuccessBanner({ children }: { children: ReactNode }) {
   return (
     <div
       role="status"
@@ -59,4 +60,8 @@ export function SuccessBanner({ children }: { children: React.ReactNode }) {
       {children}
     </div>
   );
+}
+
+export function LoadingLine({ children = "Loading…" }: { children?: ReactNode }) {
+  return <p className="py-10 text-lg text-muted">{children}</p>;
 }

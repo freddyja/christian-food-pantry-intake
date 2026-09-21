@@ -1,12 +1,9 @@
-"use client";
-
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { searchHouseholdsAction } from "@/lib/actions";
-import type { HouseholdStatus } from "@/lib/queries";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { monthSummary, searchHouseholds, todaysVisits } from "@/lib/api";
+import type { HouseholdStatus } from "@/lib/types";
 import { formatPhone, householdSizeLabel } from "@/lib/format";
-import { formatTime } from "@/lib/timezone";
+import { formatLongDate, formatMonthYear, formatTime } from "@/lib/timezone";
 import { BrandMark, SuccessBanner } from "@/components/AppShell";
 import { btn, cn, fieldClass } from "@/components/ui";
 
@@ -17,31 +14,44 @@ type Recent = {
   visitedAt: string;
 };
 
-export function SearchHome({
-  recents,
-  monthLabel,
-  householdsServed,
-  headerDate,
-  recorded,
-}: {
-  recents: Recent[];
-  monthLabel: string;
-  householdsServed: number;
-  headerDate: string;
-  recorded?: string;
-}) {
-  const router = useRouter();
+export function SearchHome() {
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const recorded = params.get("recorded") ?? undefined;
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<HouseholdStatus[]>([]);
   const [resultQuery, setResultQuery] = useState("");
   const [pending, startTransition] = useTransition();
+  const [recents, setRecents] = useState<Recent[]>([]);
+  const [householdsServed, setHouseholdsServed] = useState(0);
+  const headerDate = formatLongDate(new Date());
+  const monthLabel = formatMonthYear();
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([todaysVisits(), monthSummary()]).then(([visits, summary]) => {
+      if (cancelled) return;
+      setRecents(
+        visits.map((visit) => ({
+          id: visit.id,
+          householdId: visit.householdId,
+          householdName: visit.householdName,
+          visitedAt: visit.visitedAt,
+        })),
+      );
+      setHouseholdsServed(summary.householdsServed);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [recorded]);
 
   useEffect(() => {
     const q = query.trim();
     if (!q) return;
     const handle = window.setTimeout(() => {
       startTransition(async () => {
-        const next = await searchHouseholdsAction(q);
+        const next = await searchHouseholds(q);
         setResults(next);
         setResultQuery(q);
       });
@@ -56,7 +66,7 @@ export function SearchHome({
   function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     const top = resultsAreCurrent ? results[0] : undefined;
-    if (top) router.push(`/households/${top.household.id}`);
+    if (top) navigate(`/households/${top.household.id}`);
   }
 
   const successCopy = useMemo(() => {
@@ -74,7 +84,7 @@ export function SearchHome({
             {headerDate} · {monthLabel} households served: {householdsServed}
           </p>
         </div>
-        <Link href="/admin" className={btn.secondary}>
+        <Link to="/admin" className={btn.secondary}>
           Admin
         </Link>
       </header>
@@ -116,7 +126,7 @@ export function SearchHome({
               {(resultsAreCurrent ? results : []).map((row) => (
                 <li key={row.household.id}>
                   <Link
-                    href={`/households/${row.household.id}`}
+                    to={`/households/${row.household.id}`}
                     className="flex min-h-20 items-center justify-between gap-3 rounded-2xl border border-line bg-white px-4 py-3 shadow-sm hover:border-forest/40"
                   >
                     <div>
@@ -146,7 +156,7 @@ export function SearchHome({
               {recents.map((visit) => (
                 <li key={visit.id}>
                   <Link
-                    href={`/households/${visit.householdId}`}
+                    to={`/households/${visit.householdId}`}
                     className="block min-h-24 rounded-2xl border border-line bg-white px-4 py-3 shadow-sm hover:border-forest/40"
                   >
                     <p className="font-serif text-xl font-semibold">{visit.householdName}</p>
@@ -162,7 +172,7 @@ export function SearchHome({
       )}
 
       <div className="mt-10 flex justify-center">
-        <Link href="/households/new" className={btn.primary}>
+        <Link to="/households/new" className={btn.primary}>
           + New household
         </Link>
       </div>

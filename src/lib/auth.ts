@@ -1,47 +1,18 @@
-import { cookies } from "next/headers";
+const PIN = "1234";
+const KEY = "pantry_admin_until";
+const TWELVE_HOURS = 12 * 60 * 60 * 1000;
 
-const COOKIE = "pantry_admin";
-const DEFAULT_PIN = "1234";
-
-export function getAdminPin(): string {
-  return process.env.ADMIN_PIN || DEFAULT_PIN;
+export function isAdmin(): boolean {
+  const until = Number(localStorage.getItem(KEY) ?? "0");
+  return Number.isFinite(until) && until > Date.now();
 }
 
-export async function isAdmin(): Promise<boolean> {
-  const store = await cookies();
-  return store.get(COOKIE)?.value === "1";
+export function unlockAdmin(pin: string): boolean {
+  if (pin !== PIN) return false;
+  localStorage.setItem(KEY, String(Date.now() + TWELVE_HOURS));
+  return true;
 }
 
-export async function setAdminSession() {
-  const store = await cookies();
-  store.set(COOKIE, "1", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 12,
-  });
-}
-
-export async function clearAdminSession() {
-  const store = await cookies();
-  store.delete(COOKIE);
-}
-
-export function pinIsValid(pin: string): boolean {
-  const expected = getAdminPin();
-  if (pin.length !== expected.length) return false;
-  const left = Buffer.from(pin);
-  const right = Buffer.from(expected);
-  if (left.length !== right.length) return false;
-  return timingSafeEqual(left, right);
-}
-
-function timingSafeEqual(a: Buffer, b: Buffer): boolean {
-  if (a.length !== b.length) return false;
-  let mismatch = 0;
-  for (let i = 0; i < a.length; i++) {
-    mismatch |= a[i] ^ b[i];
-  }
-  return mismatch === 0;
+export function lockAdmin(): void {
+  localStorage.removeItem(KEY);
 }
